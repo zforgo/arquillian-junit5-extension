@@ -1,5 +1,6 @@
 package io.github.zforgo.arquillian.junit5.container;
 
+
 import io.github.zforgo.arquillian.junit5.ArquillianExtension;
 import io.github.zforgo.arquillian.junit5.ArquillianTestClassLifecycleManager;
 import org.jboss.arquillian.container.test.spi.TestRunner;
@@ -13,19 +14,17 @@ import org.junit.platform.engine.TestEngine;
 public class JUnitJupiterDeploymentAppender extends CachedAuxilliaryArchiveAppender {
 	@Override
 	protected Archive<?> buildArchive() {
-		JavaArchive archive = ShrinkWrap.create(JavaArchive.class, "arquillian-junit-jupiter.jar")
+		JavaArchive archive = ShrinkWrap.create(JavaArchive.class, "arquillian-junit5.jar")
 				.addPackages(
 						true,
 						"org.junit",
 						"org/opentest4j",
 						ArquillianExtension.class.getPackage().getName(),
-						ArquillianTestClassLifecycleManager.class.getPackage().getName()
-				)
+						ArquillianTestClassLifecycleManager.class.getPackage().getName())
 				.addAsServiceProvider(
 						TestRunner.class,
-						JunitJupiterTestRunner.class)
-				.addAsServiceProvider(TestEngine.class, JupiterTestEngine.class)
-				;
+						JUnitJupiterTestRunner.class)
+				.addAsServiceProvider(TestEngine.class, JupiterTestEngine.class);
 		return archive;
 	}
 }

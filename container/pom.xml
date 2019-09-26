@@ -3,21 +3,16 @@
 		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
-		<artifactId>arquillian-junit5-extension</artifactId>
 		<groupId>io.github.zforgo.arquillian.junit5</groupId>
+		<artifactId>arquillian-junit5-parent</artifactId>
 		<version>0.1.0-SNAPSHOT</version>
 	</parent>
 
-	<artifactId>container</artifactId>
+	<artifactId>arquillian-junit5-container</artifactId>
 
 	<name>container</name>
 	<dependencies>
-		<dependency>
-			<groupId>${project.groupId}</groupId>
-			<artifactId>core</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-
+		<!-- org.jboss.arquillian -->
 		<dependency>
 			<groupId>org.jboss.arquillian.test</groupId>
 			<artifactId>arquillian-test-api</artifactId>
@@ -60,11 +55,19 @@
 		</dependency>
 
 		<dependency>
-			<groupId>org.jboss.shrinkwrap</groupId>
-			<artifactId>shrinkwrap-impl-base</artifactId>
-			<version>1.2.6</version>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>arquillian-junit5-core</artifactId>
+			<version>${project.version}</version>
 		</dependency>
 
+
+
+		<!-- External Projects -->
+		<dependency>
+			<groupId>org.jboss.shrinkwrap</groupId>
+			<artifactId>shrinkwrap-impl-base</artifactId>
+			<version>${version.shrinkwrap_shrinkwrap}</version>
+		</dependency>
 
 		<dependency>
 			<groupId>org.junit.platform</groupId>
@@ -76,6 +79,12 @@
 			<groupId>org.junit.jupiter</groupId>
 			<artifactId>junit-jupiter-engine</artifactId>
 			<version>${version.junit5}</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.junit.platform</groupId>
+			<artifactId>junit-platform-testkit</artifactId>
+			<version>${version.junit5.platform}</version>
 			<scope>provided</scope>
 		</dependency>
 

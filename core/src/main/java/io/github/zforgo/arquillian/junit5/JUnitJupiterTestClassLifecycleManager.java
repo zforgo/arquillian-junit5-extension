@@ -4,18 +4,22 @@ import org.jboss.arquillian.test.spi.TestRunnerAdaptor;
 import org.junit.jupiter.api.extension.ExtensionContext;
 
 public class JUnitJupiterTestClassLifecycleManager extends ArquillianTestClassLifecycleManager {
+	private static final String NAMESPACE_KEY = "arquillianNamespace";
+	private static final String ADAPTOR_KEY = "testRunnerAdaptor";
 
-    private Storage storage;
+	private ExtensionContext.Store store;
 
-    public JUnitJupiterTestClassLifecycleManager(ExtensionContext extensionContext) {
-        storage = new Storage(extensionContext);
-    }
+	public JUnitJupiterTestClassLifecycleManager(ExtensionContext context) {
+		store = context.getStore(ExtensionContext.Namespace.create(NAMESPACE_KEY));
+	}
 
-    protected void setAdaptor(TestRunnerAdaptor testRunnerAdaptor) {
-        storage.storeAdaptor(testRunnerAdaptor);
-    }
+	@Override
+	protected void setAdaptor(TestRunnerAdaptor testRunnerAdaptor) {
+		store.put(ADAPTOR_KEY, testRunnerAdaptor);
+	}
 
-    protected TestRunnerAdaptor getAdaptor() {
-        return storage.getAdaptor();
-    }
+	@Override
+	protected TestRunnerAdaptor getAdaptor() {
+		return store.get(ADAPTOR_KEY, TestRunnerAdaptor.class);
+	}
 }

@@ -8,6 +8,6 @@ public class JUnitJupiterContainerExtension implements LoadableExtension {
 	public void register(ExtensionBuilder builder) {
 		builder
 				.service(AuxiliaryArchiveAppender.class, JUnitJupiterDeploymentAppender.class)
-				.observer(ClientModeDecisionMaker.class);
+		;
 	}
 }

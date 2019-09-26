@@ -5,7 +5,5 @@ import org.jboss.arquillian.core.spi.LoadableExtension;
 public class JUnitJupiterCoreExtension implements LoadableExtension {
 	@Override
 	public void register(ExtensionBuilder builder) {
-		builder
-				.observer(UpdateTestResultBeforeAfter.class);
 	}
 }

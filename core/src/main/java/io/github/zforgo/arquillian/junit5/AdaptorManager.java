@@ -2,7 +2,7 @@ package io.github.zforgo.arquillian.junit5;
 
 import org.jboss.arquillian.test.spi.TestRunnerAdaptor;
 import org.jboss.arquillian.test.spi.TestRunnerAdaptorBuilder;
-
+//TODO move to common
 abstract class AdaptorManager {
 
     void initializeAdaptor() throws Exception {
@@ -35,7 +35,7 @@ abstract class AdaptorManager {
         }
     }
 
-    protected void shutdown(TestRunnerAdaptor adaptor) {
+    void shutdown(TestRunnerAdaptor adaptor) {
         State.runnerFinished();
         try {
             if (State.isLastRunner()) {

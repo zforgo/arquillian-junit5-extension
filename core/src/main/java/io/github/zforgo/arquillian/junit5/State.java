@@ -25,6 +25,7 @@ import org.jboss.arquillian.test.spi.TestRunnerAdaptor;
  * @author <a href="mailto:aslak@redhat.com">Aslak Knutsen</a>
  * @version $Revision: $
  */
+//TODO merge to common
 public class State {
     /*
      * @HACK
@@ -69,7 +70,7 @@ public class State {
 
     static {
         try {
-			State.class.getClassLoader().loadClass("org.eclipse.jdt.internal.junit.runner.RemoteTestRunner");
+            State.class.getClassLoader().loadClass("org.eclipse.jdt.internal.junit.runner.RemoteTestRunner");
             runningInEclipse = true;
         } catch (Exception e) {
             runningInEclipse = false;

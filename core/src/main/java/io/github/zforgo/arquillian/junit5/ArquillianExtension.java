@@ -1,5 +1,6 @@
 package io.github.zforgo.arquillian.junit5;
 
+import io.github.zforgo.arquillian.junit5.extension.RunModeEvent;
 import org.jboss.arquillian.test.spi.LifecycleMethodExecutor;
 import org.jboss.arquillian.test.spi.TestMethodExecutor;
 import org.jboss.arquillian.test.spi.TestResult;
@@ -12,7 +13,7 @@ import org.junit.jupiter.api.extension.InvocationInterceptor;
 import org.junit.jupiter.api.extension.ReflectiveInvocationContext;
 import org.junit.jupiter.api.extension.TestExecutionExceptionHandler;
 import org.junit.platform.commons.JUnitException;
-import org.opentest4j.TestAbortedException;
+import org.junit.platform.commons.util.ExceptionUtils;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -42,7 +43,6 @@ public class ArquillianExtension implements BeforeAllCallback, AfterAllCallback,
 	@Override
 	public void afterAll(ExtensionContext context) throws Exception {
 		getManager(context).afterTestClassPhase(context.getRequiredTestClass());
-		//TODO finish it
 	}
 
 	@Override
@@ -59,7 +59,30 @@ public class ArquillianExtension implements BeforeAllCallback, AfterAllCallback,
 				context.getRequiredTestInstance(),
 				context.getRequiredTestMethod(),
 				LifecycleMethodExecutor.NO_OP);
-//TODO finish it
+	}
+
+	@Override
+	public void interceptTestTemplateMethod(Invocation<Void> invocation, ReflectiveInvocationContext<Method> invocationContext, ExtensionContext extensionContext) throws Throwable {
+		if (isInsideArquillian.test(extensionContext)) {
+			// run inside arquillian
+			invocation.proceed();
+		} else {
+			RunModeEvent runModeEvent = new RunModeEvent(extensionContext.getRequiredTestInstance(), extensionContext.getRequiredTestMethod());
+			getManager(extensionContext).getAdaptor().fireCustomLifecycle(runModeEvent);
+			if (runModeEvent.isRunAsClient()) {
+				// Run as client
+				interceptInvocation(invocationContext, extensionContext);
+			} else {
+				// Run as container (but only once)
+				if (!getManager(extensionContext).isRegisteredTemplate(invocationContext.getExecutable())) {
+					interceptInvocation(invocationContext, extensionContext);
+				}
+				// Otherwise get result
+				getManager(extensionContext)
+						.getResult(extensionContext.getUniqueId())
+						.ifPresent(ExceptionUtils::throwAsUncheckedException);
+			}
+		}
 	}
 
 	@Override
@@ -67,29 +90,37 @@ public class ArquillianExtension implements BeforeAllCallback, AfterAllCallback,
 		if (isInsideArquillian.test(extensionContext)) {
 			invocation.proceed();
 		} else {
-			TestResult result = getManager(extensionContext).getAdaptor().test(new TestMethodExecutor() {
-				@Override
-				public Method getMethod() {
-					return extensionContext.getRequiredTestMethod();
-				}
+			interceptInvocation(invocationContext, extensionContext);
+		}
+	}
 
-				@Override
-				public Object getInstance() {
-					return extensionContext.getRequiredTestInstance();
-				}
+	private void interceptInvocation(ReflectiveInvocationContext<Method> invocationContext, ExtensionContext extensionContext) throws Throwable {
+		TestResult result = getManager(extensionContext).getAdaptor().test(new TestMethodExecutor() {
+			@Override
+			public Method getMethod() {
+				return extensionContext.getRequiredTestMethod();
+			}
 
-				@Override
-				public void invoke(Object... parameters) throws InvocationTargetException, IllegalAccessException {
-					getMethod().invoke(getInstance());
-				}
-			});
-			switch (result.getStatus()) {
-				case FAILED:
-					throw Optional.ofNullable(result.getThrowable())
-							.orElseGet(() -> new Exception("Failed"));
-				case SKIPPED:
-					throw Optional.ofNullable(result.getThrowable())
-							.orElseGet(() -> new TestAbortedException("Aborted"));
+			@Override
+			public Object getInstance() {
+				return extensionContext.getRequiredTestInstance();
+			}
+
+			@Override
+			public void invoke(Object... parameters) throws InvocationTargetException, IllegalAccessException {
+				getMethod().invoke(getInstance(), invocationContext.getArguments().toArray());
+			}
+		});
+		populateResults(result, extensionContext);
+	}
+
+	private void populateResults(TestResult result, ExtensionContext context) {
+		if (Optional.ofNullable(result.getThrowable()).isPresent()) {
+			if (result.getThrowable() instanceof IdentifiedTestException) {
+				((IdentifiedTestException) result.getThrowable()).getCollectedExceptions()
+						.forEach((id, throwable) -> getManager(context).storeResult(id, throwable));
+			} else {
+				getManager(context).storeResult(context.getUniqueId(), result.getThrowable());
 			}
 		}
 	}
@@ -101,5 +132,4 @@ public class ArquillianExtension implements BeforeAllCallback, AfterAllCallback,
 		}
 		throw throwable;
 	}
-
 }

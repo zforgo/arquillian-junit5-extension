@@ -1,5 +1,10 @@
 package io.github.zforgo.arquillian.junit5;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.Optional;
+import java.util.function.Predicate;
+
 import io.github.zforgo.arquillian.junit5.extension.RunModeEvent;
 import org.jboss.arquillian.test.spi.LifecycleMethodExecutor;
 import org.jboss.arquillian.test.spi.TestMethodExecutor;
@@ -14,11 +19,6 @@ import org.junit.jupiter.api.extension.ReflectiveInvocationContext;
 import org.junit.jupiter.api.extension.TestExecutionExceptionHandler;
 import org.junit.platform.commons.JUnitException;
 import org.junit.platform.commons.util.ExceptionUtils;
-
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.Optional;
-import java.util.function.Predicate;
 
 public class ArquillianExtension implements BeforeAllCallback, AfterAllCallback, BeforeEachCallback, AfterEachCallback, InvocationInterceptor, TestExecutionExceptionHandler {
 	private static final String CHAIN_EXCEPTION_MESSAGE_PREFIX = "Chain of InvocationInterceptors never called invocation";
@@ -96,6 +96,11 @@ public class ArquillianExtension implements BeforeAllCallback, AfterAllCallback,
 
 	private void interceptInvocation(ReflectiveInvocationContext<Method> invocationContext, ExtensionContext extensionContext) throws Throwable {
 		TestResult result = getManager(extensionContext).getAdaptor().test(new TestMethodExecutor() {
+			@Override
+			public String getMethodName() {
+				return extensionContext.getRequiredTestMethod().getName();
+			}
+
 			@Override
 			public Method getMethod() {
 				return extensionContext.getRequiredTestMethod();
